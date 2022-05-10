@@ -1,26 +1,29 @@
-using Microsoft.AspNetCore.Mvc;
-
-namespace bbt.incoming_sms.Controllers;
-
 [ApiController]
 [Route("[controller]")]
 public class PoolSMSController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+
+    const string storeName = "statestore";
+    const string key = "last_pooled";
+
 
     private readonly ILogger<PoolSMSController> _logger;
 
-    public PoolSMSController(ILogger<PoolSMSController> logger)
+    public PoolSMSController(ILogger<PoolSMSController> logger )
     {
         _logger = logger;
     }
 
     [HttpPost]
-    public void PoolSMS()
+    public async void PoolSMS([FromServices] DaprClient daprClient)
     {
-        Console.Write("Triggered");
+        var lastPooled = await daprClient.GetStateAsync<DateTime>(storeName, key);
+
+        _logger.LogInformation("trigered for: {0}", lastPooled);
+        
+        await Task.Delay(1000);
+
+        lastPooled = DateTime.UtcNow;
+        await daprClient.SaveStateAsync(storeName, key, lastPooled);
     }
 }
