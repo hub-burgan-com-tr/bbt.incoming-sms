@@ -4,7 +4,7 @@ public class PoolController : ControllerBase
 {
     const string storeName = "statestore";
     const string key_lastpooled = "last_pooled_at";
-    const string key_allowlist = "allowed_prefix_list";
+
 
     const string key_sms = "Process";
 
@@ -18,17 +18,6 @@ public class PoolController : ControllerBase
     [HttpPost]
     public async void Pool([FromServices] DaprClient daprClient)
     {
-        List<string> allowedPrefixList = await daprClient.GetStateAsync<List<string>>(storeName, key_allowlist);
-        if (allowedPrefixList is null)
-        {
-            allowedPrefixList = new List<string> { "MIGORS", "DRD", "KREDI" };
-            await daprClient.SaveStateAsync(storeName, key_allowlist, allowedPrefixList);
-            _logger.LogInformation("Allowed prefix not found, creating");
-        }
-
-        _logger.LogInformation("Allowed prefix list: {0}", allowedPrefixList);
-
-
         var lastPooled = await daprClient.GetStateAsync<DateTime>(storeName, key_lastpooled);
         _logger.LogInformation("Pooling is trigered delta: {0}", lastPooled);
 
