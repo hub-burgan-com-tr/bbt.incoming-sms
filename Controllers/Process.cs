@@ -23,7 +23,7 @@ public class ProcessController : ControllerBase
         {
             allowedPrefixList = new List<string> { "MIGORS", "DRD", "KREDI" };
             await daprClient.SaveStateAsync(storeName, key_allowlist, allowedPrefixList);
-            _logger.LogInformation("Allowed prefix not found, creating");
+            _logger.LogInformation("Allowed prefix not found, creating..."); 
         }
 
         _logger.LogInformation("Allowed prefix list: {0}", allowedPrefixList);
