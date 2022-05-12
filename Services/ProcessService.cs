@@ -1,5 +1,6 @@
+using System.Text.Json;
 
-public class PrefixService : IPrefixService
+public class ProcessService : IProcessService
 {
 
     const string storeName = "statestore";
@@ -10,11 +11,30 @@ public class PrefixService : IPrefixService
     private readonly ILogger<ProcessController> _logger;
     private readonly DaprClient _daprClient;
 
-    public PrefixService(ILogger<ProcessController> logger, DaprClient daprClient)
+    public ProcessService(ILogger<ProcessController> logger, DaprClient daprClient)
     {
         _logger = logger;
         _daprClient = daprClient;
     }
+
+    public async Task<SMS> Process(SMS message)
+    {
+
+        _logger.LogInformation("Processing Incoming - Message Id -{0}-  and Wire Id -{1}-", message.Id, message.WireId);
+        message.UpdatedMessage = UnifyMessage(message.IncomingMessage);
+
+        _logger.LogInformation("Processing Incoming - Message is updated from -{0}- to -{1}-", message.IncomingMessage, message.UpdatedMessage);
+
+        message.Keyword = message.UpdatedMessage.Split(" ")[0];
+
+        message.IsAllowed = await IsAllowedPrefix(message.Keyword);
+
+        _logger.LogInformation("Processing Incoming -{0}", JsonSerializer.Serialize(message));
+
+        return message;
+    }
+
+
 
     public string UnifyMessage(string message)
     {
@@ -30,7 +50,7 @@ public class PrefixService : IPrefixService
     public async ValueTask<bool> IsAllowedPrefix(string keyword)
     {
         var keywords = await getAllowedPrefixList();
-        return keyword.Contains(keyword.Trim());
+        return keywords.Any(s => keyword.Contains(s));
     }
 
     private async ValueTask<string[]> getAllowedPrefixList()

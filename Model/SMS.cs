@@ -5,5 +5,6 @@ public class SMS
     public string IncomingMessage { get; set; } = string.Empty;
     public string UpdatedMessage { get; set; } = string.Empty;
     public string Keyword { get; set; } = string.Empty;
-    public string RemaningMessage { get; set; } = string.Empty;
+    public bool IsAllowed { get; set; } = false;
+    
 }

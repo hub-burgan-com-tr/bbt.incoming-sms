@@ -5,7 +5,7 @@ using Dapr;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IPrefixService, PrefixService>();
+builder.Services.AddScoped<IProcessService, ProcessService>();
 
 builder.Services.AddControllers();
 builder.Services.AddDaprClient(builder =>
