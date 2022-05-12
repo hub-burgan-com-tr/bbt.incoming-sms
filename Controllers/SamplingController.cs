@@ -1,6 +1,6 @@
 [ApiController]
 [Route("[controller]")]
-public class PollController : ControllerBase
+public class SamplingController : ControllerBase
 {
     const string storeName = "statestore";
     const string key_lastpooled = "last_pooled_at";
@@ -8,15 +8,15 @@ public class PollController : ControllerBase
 
     const string key_sms = "Process";
 
-    private readonly ILogger<PollController> _logger;
+    private readonly ILogger<SamplingController> _logger;
 
-    public PollController(ILogger<PollController> logger)
+    public SamplingController(ILogger<SamplingController> logger)
     {
         _logger = logger;
     }
 
     [HttpPost]
-    public async void Pool([FromServices] DaprClient daprClient)
+    public async void GenerateSample([FromServices] DaprClient daprClient)
     {
         var lastPooled = await daprClient.GetStateAsync<DateTime>(storeName, key_lastpooled);
         _logger.LogInformation("Pooling is trigered delta: {0}", lastPooled);
@@ -26,8 +26,8 @@ public class PollController : ControllerBase
         lastPooled = DateTime.UtcNow;
         await daprClient.SaveStateAsync(storeName, key_lastpooled, lastPooled);
 
-        var message = new SMS { IncomingMessage = "KREDiçsü 3656565255", WireId = Guid.NewGuid().ToString() };
+        var message = new Message { IncomingMessage = "KREDi 3656565255", WireId = Guid.NewGuid().ToString() };
 
-        await daprClient.PublishEventAsync<SMS>("pubsub", key_sms, message);
+        await daprClient.PublishEventAsync<Message>("pubsub", key_sms, message);
     }
 }

@@ -15,12 +15,12 @@ public class ProcessController : ControllerBase
         _logger = logger;
     }
 
-    [Topic("pubsub", key_sms)]
+    [Topic(Globals.Queue, Globals.Process_Sms_Queue)]
     [HttpPost]
-    public async Task<ActionResult> Process(SMS message, [FromServices] DaprClient daprClient, [FromServices] IProcessService processsor)
+    public async Task<ActionResult> Process(Message message, [FromServices] DaprClient daprClient, [FromServices] IProcessService processsor)
     {
         message = await processsor.Process(message);
-        await daprClient.PublishEventAsync<SMS>("pubsub", message.Keyword, message);
+        await daprClient.PublishEventAsync<Message>("pubsub", message.Keyword, message);
         return Ok();
     }
 }

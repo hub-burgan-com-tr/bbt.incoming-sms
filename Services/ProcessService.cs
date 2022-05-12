@@ -17,17 +17,17 @@ public class ProcessService : IProcessService
         _daprClient = daprClient;
     }
 
-    public async Task<SMS> Process(SMS message)
+    public async Task<Message> Process(Message message)
     {
 
         _logger.LogInformation("Processing Incoming - Message Id -{0}-  and Wire Id -{1}-", message.Id, message.WireId);
-        message.UpdatedMessage = UnifyMessage(message.IncomingMessage);
+        message.UpdatedMessage = unifyMessage(message.IncomingMessage);
 
         _logger.LogInformation("Processing Incoming - Message is updated from -{0}- to -{1}-", message.IncomingMessage, message.UpdatedMessage);
 
         message.Keyword = message.UpdatedMessage.Split(" ")[0];
 
-        message.IsAllowed = await IsAllowedPrefix(message.Keyword);
+        message.IsAllowed = await isAllowedPrefix(message.Keyword);
 
         _logger.LogInformation("Processing Incoming -{0}", JsonSerializer.Serialize(message));
 
@@ -36,7 +36,7 @@ public class ProcessService : IProcessService
 
 
 
-    public string UnifyMessage(string message)
+    private string unifyMessage(string message)
     {
         return message.ToUpperInvariant()
             .Replace("Ğ", "G")
@@ -47,10 +47,18 @@ public class ProcessService : IProcessService
             .Replace("Ç", "C");
     }
 
-    public async ValueTask<bool> IsAllowedPrefix(string keyword)
+    private async ValueTask<bool> isAllowedPrefix(string keyword)
     {
         var keywords = await getAllowedPrefixList();
-        return keywords.Any(s => keyword.Contains(s));
+        return keywords.Any(s => 
+        {
+
+             _logger.LogInformation("Result: {0} of {1} - {2}", s.Contains(keyword), s, keyword);
+            
+            return s.Contains(keyword);
+            
+        }
+        );
     }
 
     private async ValueTask<string[]> getAllowedPrefixList()

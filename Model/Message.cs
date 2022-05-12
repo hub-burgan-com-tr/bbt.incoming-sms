@@ -1,4 +1,4 @@
-public class SMS
+public class Message
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string WireId { get; set; } = string.Empty;
