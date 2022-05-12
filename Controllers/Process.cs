@@ -3,7 +3,7 @@
 public class ProcessController : ControllerBase
 {
     const string storeName = "statestore";
-    
+
     const string key_sms = "Process";
     const string key_allowlist = "allowed_prefix_list";
 
@@ -16,25 +16,22 @@ public class ProcessController : ControllerBase
 
     [Topic("pubsub", key_sms)]
     [HttpPost]
-    public async Task<ActionResult> Process(SMS message, [FromServices] DaprClient daprClient)
+    public async Task<ActionResult> Process(SMS message, [FromServices] DaprClient daprClient, [FromServices] IPrefixService prefixService)
     {
-         List<string> allowedPrefixList = await daprClient.GetStateAsync<List<string>>(storeName, key_allowlist);
-        if (allowedPrefixList is null)
-        {
-            allowedPrefixList = new List<string> { "MIGORS", "DRD", "KREDI" };
-            await daprClient.SaveStateAsync(storeName, key_allowlist, allowedPrefixList);
-            _logger.LogInformation("Allowed prefix not found, creating..."); 
-        }
 
-        _logger.LogInformation("Allowed prefix list: {0}", allowedPrefixList);
+        _logger.LogInformation("Processing Incoming - Message Id -{0}-  and Wire Id -{1}-", message.Id, message.WireId);
 
+        message.UpdatedMessage = prefixService.UnifyMessage(message.IncomingMessage);
+        _logger.LogInformation("Processing Incoming - Message is updated from -{0}- to -{1}-", message.IncomingMessage, message.UpdatedMessage);
 
-        var root_keyword = message.FullMessage.Split(" ")[0];
-        _logger.LogInformation("Processing Incoming sms -{0}- witßh root keyword -{1}-", message.Id, root_keyword);
-        _logger.LogInformation("Processing Incoming sms with wireid -{0}- and message -{1}-", message.WireId, message.FullMessage);
+        message.Keyword = message.UpdatedMessage.Split(" ")[0];
+
+        var isAllowed = await prefixService.IsAllowedPrefix(message.Keyword);
+
+        _logger.LogInformation("Processing Incoming - Root keyword is -{0}- and allowance is {1}", message.Keyword, isAllowed);
 
 
-        await daprClient.PublishEventAsync<SMS>("pubsub", root_keyword, message);
+        await daprClient.PublishEventAsync<SMS>("pubsub", message.Keyword, message);
 
         return Ok();
     }

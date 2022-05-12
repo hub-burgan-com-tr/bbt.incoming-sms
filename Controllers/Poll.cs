@@ -1,6 +1,6 @@
 [ApiController]
 [Route("[controller]")]
-public class PoolController : ControllerBase
+public class PollController : ControllerBase
 {
     const string storeName = "statestore";
     const string key_lastpooled = "last_pooled_at";
@@ -8,9 +8,9 @@ public class PoolController : ControllerBase
 
     const string key_sms = "Process";
 
-    private readonly ILogger<PoolController> _logger;
+    private readonly ILogger<PollController> _logger;
 
-    public PoolController(ILogger<PoolController> logger)
+    public PollController(ILogger<PollController> logger)
     {
         _logger = logger;
     }
@@ -26,7 +26,7 @@ public class PoolController : ControllerBase
         lastPooled = DateTime.UtcNow;
         await daprClient.SaveStateAsync(storeName, key_lastpooled, lastPooled);
 
-        var message = new SMS { FullMessage = "KREDI 3656565255", WireId = Guid.NewGuid().ToString() };
+        var message = new SMS { IncomingMessage = "KREDiçsü 3656565255", WireId = Guid.NewGuid().ToString() };
 
         await daprClient.PublishEventAsync<SMS>("pubsub", key_sms, message);
     }
