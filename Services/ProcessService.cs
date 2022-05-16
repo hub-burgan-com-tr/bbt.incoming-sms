@@ -6,7 +6,7 @@ public class ProcessService : IProcessService
     const string storeName = "statestore";
     const string key_allowlist = "allowed_prefix_list";
 
-    readonly string[] defaults = { "MIGORS", "DRD", "KREDI" };
+    readonly string[] defaults = { "MIGROS", "KREDI" };
 
     private readonly ILogger<ProcessController> _logger;
     private readonly DaprClient _daprClient;
@@ -19,17 +19,23 @@ public class ProcessService : IProcessService
 
     public async Task<Message> Process(Message message)
     {
+        _logger.LogInformation("Processing Incoming -{0}", JsonSerializer.Serialize(message));
 
-        _logger.LogInformation("Processing Incoming - Message Id -{0}-  and Wire Id -{1}-", message.Id, message.WireId);
         message.UpdatedMessage = unifyMessage(message.IncomingMessage);
-
-        _logger.LogInformation("Processing Incoming - Message is updated from -{0}- to -{1}-", message.IncomingMessage, message.UpdatedMessage);
-
         message.Keyword = message.UpdatedMessage.Split(" ")[0];
 
         message.IsAllowed = await isAllowedPrefix(message.Keyword);
 
-        _logger.LogInformation("Processing Incoming -{0}", JsonSerializer.Serialize(message));
+        _logger.LogInformation("Processed Incoming -{0}", JsonSerializer.Serialize(message));
+
+        if (message.IsAllowed)
+        {
+            await _daprClient.PublishEventAsync<Message>(Globals.Queue, message.Keyword, message);
+        }
+        else
+        {
+            await _daprClient.PublishEventAsync<Message>(Globals.Queue, Globals.Error_Queue, message);
+        }
 
         return message;
     }
@@ -50,15 +56,7 @@ public class ProcessService : IProcessService
     private async ValueTask<bool> isAllowedPrefix(string keyword)
     {
         var keywords = await getAllowedPrefixList();
-        return keywords.Any(s => 
-        {
-
-             _logger.LogInformation("Result: {0} of {1} - {2}", s.Contains(keyword), s, keyword);
-            
-            return s.Contains(keyword);
-            
-        }
-        );
+        return keywords.Any(s => s.Contains(keyword));
     }
 
     private async ValueTask<string[]> getAllowedPrefixList()
@@ -71,7 +69,6 @@ public class ProcessService : IProcessService
             _logger.LogInformation("Allowed prefix not found, creating...");
         }
 
-        _logger.LogInformation("Allowed prefix list: {0}", allowedPrefixList);
         return allowedPrefixList.ToArray();
     }
 

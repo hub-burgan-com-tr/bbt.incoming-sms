@@ -19,8 +19,7 @@ public class ProcessController : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Process(Message message, [FromServices] DaprClient daprClient, [FromServices] IProcessService processsor)
     {
-        message = await processsor.Process(message);
-        await daprClient.PublishEventAsync<Message>("pubsub", message.Keyword, message);
+        await processsor.Process(message);
         return Ok();
     }
 }

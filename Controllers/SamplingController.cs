@@ -2,11 +2,8 @@
 [Route("[controller]")]
 public class SamplingController : ControllerBase
 {
-    const string storeName = "statestore";
-    const string key_lastpooled = "last_pooled_at";
 
-
-    const string key_sms = "Process";
+    readonly string[] samples = { "MIGROS", "KREDI", "PARA", "BORC" };
 
     private readonly ILogger<SamplingController> _logger;
 
@@ -18,16 +15,19 @@ public class SamplingController : ControllerBase
     [HttpPost]
     public async void GenerateSample([FromServices] DaprClient daprClient)
     {
-        var lastPooled = await daprClient.GetStateAsync<DateTime>(storeName, key_lastpooled);
-        _logger.LogInformation("Pooling is trigered delta: {0}", lastPooled);
-
+        var lastPooled = await daprClient.GetStateAsync<DateTime>(Globals.StateStore, Globals.LastPooledAt);
+        _logger.LogInformation("Pooling previous triger date: {0}", lastPooled);
         await Task.Delay(1000);
-
         lastPooled = DateTime.UtcNow;
-        await daprClient.SaveStateAsync(storeName, key_lastpooled, lastPooled);
+        await daprClient.SaveStateAsync(Globals.StateStore, Globals.LastPooledAt, lastPooled);
 
-        var message = new Message { IncomingMessage = "KREDi 3656565255", WireId = Guid.NewGuid().ToString() };
 
-        await daprClient.PublishEventAsync<Message>("pubsub", key_sms, message);
+
+        Random random = new Random();
+        int samplesIndex = random.Next(samples.Length);
+        var sampleMessage = string.Format("{0} {1}666", samples[samplesIndex], random.Next(10000000, 99999999).ToString());
+        var message = new OperatorMessage { Message = sampleMessage, Id = Guid.NewGuid().ToString() };
+
+        await daprClient.PublishEventAsync<OperatorMessage>(Globals.Queue, Globals.Sampling_Queue, message);
     }
 }

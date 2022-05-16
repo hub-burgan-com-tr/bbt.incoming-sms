@@ -10,6 +10,7 @@ public class SaveController : ControllerBase
         _logger = logger;
     }
 
+    [Topic(Globals.Queue, Globals.Sampling_Queue)]
     [HttpPost]
     public async void Save(OperatorMessage operatorMessage, [FromServices] DaprClient daprClient)
     {
