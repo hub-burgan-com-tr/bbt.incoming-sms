@@ -3,11 +3,6 @@ using System.Text.Json;
 public class ProcessService : IProcessService
 {
 
-    const string storeName = "statestore";
-    const string key_allowlist = "allowed_prefix_list";
-
-    readonly string[] defaults = { "MIGROS", "KREDI" };
-
     private readonly ILogger<ProcessController> _logger;
     private readonly DaprClient _daprClient;
 
@@ -61,11 +56,11 @@ public class ProcessService : IProcessService
 
     private async ValueTask<string[]> getAllowedPrefixList()
     {
-        List<string> allowedPrefixList = await _daprClient.GetStateAsync<List<string>>(storeName, key_allowlist);
+        List<string> allowedPrefixList = await _daprClient.GetStateAsync<List<string>>(Globals.StateStore, Globals.AllowedKeywords);
         if (allowedPrefixList is null)
         {
-            allowedPrefixList = new List<string>(defaults);
-            await _daprClient.SaveStateAsync(storeName, key_allowlist, allowedPrefixList);
+            allowedPrefixList = new List<string>(Globals.defaultKeywords);
+            await _daprClient.SaveStateAsync(Globals.StateStore, Globals.AllowedKeywords, allowedPrefixList);
             _logger.LogInformation("Allowed prefix not found, creating...");
         }
 

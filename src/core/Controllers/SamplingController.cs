@@ -3,8 +3,6 @@
 public class SamplingController : ControllerBase
 {
 
-    readonly string[] samples = { "MIGROS", "KREDI", "PARA", "BORC" };
-
     private readonly ILogger<SamplingController> _logger;
 
     public SamplingController(ILogger<SamplingController> logger)
@@ -24,8 +22,8 @@ public class SamplingController : ControllerBase
 
 
         Random random = new Random();
-        int samplesIndex = random.Next(samples.Length);
-        var sampleMessage = string.Format("{0} {1}666", samples[samplesIndex], random.Next(10000000, 99999999).ToString());
+        int samplesIndex = random.Next(Globals.samplingKeywords.Length);
+        var sampleMessage = string.Format("{0} {1}666", Globals.samplingKeywords[samplesIndex], random.Next(10000000, 99999999).ToString());
         var message = new OperatorMessage { Message = sampleMessage, Id = Guid.NewGuid().ToString() };
 
         await daprClient.PublishEventAsync<OperatorMessage>(Globals.Queue, Globals.Sampling_Queue, message);

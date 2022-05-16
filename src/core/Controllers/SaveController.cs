@@ -2,7 +2,6 @@
 [Route("[controller]")]
 public class SaveController : ControllerBase
 {
-
     private readonly ILogger<SaveController> _logger;
 
     public SaveController(ILogger<SaveController> logger)

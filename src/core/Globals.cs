@@ -1,9 +1,11 @@
 public static class Globals
 {
-    public const string[] defaultKeywords = { "MIGROS", "KREDI" };
+    public static string[] defaultKeywords = { "MIGROS", "KREDI" };
+    public static string[] samplingKeywords = { "MIGROS", "KREDI", "PARA", "BORC" };
 
     public const string StateStore = "statestore";
     public const string LastPooledAt = "last_pooled_at";
+    public const string AllowedKeywords = "allowed_keywords";
 
     public const string Queue = "pubsub";
     public const string Process_Sms_Queue = "queue_process_sms";

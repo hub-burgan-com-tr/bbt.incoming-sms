@@ -3,11 +3,6 @@
 [Route("[controller]")]
 public class ProcessController : ControllerBase
 {
-    const string storeName = "statestore";
-
-    const string key_sms = "Process";
-    const string key_allowlist = "allowed_prefix_list";
-
     private readonly ILogger<ProcessController> _logger;
 
     public ProcessController(ILogger<ProcessController> logger)
