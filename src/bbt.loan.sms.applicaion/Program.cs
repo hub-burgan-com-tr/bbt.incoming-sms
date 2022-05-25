@@ -26,6 +26,7 @@ app.MapPost("/migros", async ([FromBody] Message message) =>
 
 app.Run();
 
+
 public class Message
 {
     public Guid Id { get; set; } = Guid.NewGuid();
