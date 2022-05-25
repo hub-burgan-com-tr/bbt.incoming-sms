@@ -24,6 +24,15 @@ app.MapPost("/migros", async ([FromBody] Message message) =>
     return Results.Accepted("/", message.Id);
 }).WithTopic("pubsub", "MIGROS");
 
+
+app.MapPost("/kredi", async ([FromBody] Message message) =>
+{
+    app.Logger.LogInformation("Kredi application is hit. Id : {0}", message.Id);
+    return Results.Accepted("/", message.Id);
+}).WithTopic("pubsub", "KREDI");
+
+
+
 app.Run();
 
 

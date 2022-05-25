@@ -1,0 +1,46 @@
+version: '3.4'
+
+services:
+  bbt.incoming-sms:
+    image: ${DOCKER_REGISTRY-}bbtincomingsms
+    build:
+      context: .
+      dockerfile: bbt.incoming-sms/Dockerfile
+
+  bbt.loan.sms.applicaion:
+    image: ${DOCKER_REGISTRY-}bbtloansmsapplicaion
+    build:
+      context: .
+      dockerfile: bbt.loan.sms.applicaion/Dockerfile
+
+  dapr.bbt.incoming-sms:
+    image: "daprio/daprd:latest"
+    command: [ 
+    "./daprd", 
+    "-app-id", "bbt.incoming-sms", 
+    "-app-port", "80", 
+    "-components-path", "/components"
+     ]
+    volumes:
+      - "./bbt.incoming-sms/components/:/components"
+    network_mode: "service:bbt.incoming-sms"
+    depends_on:
+      - dapr-app-redis
+
+  dapr.bbt.loan.sms.applicaion:
+    image: "daprio/daprd:latest"
+    command: [ 
+    "./daprd", 
+    "-app-id", "bbt.loan.sms.applicaion", 
+    "-app-port", "80", 
+    "-components-path", "/components"
+     ]
+    volumes:
+      - "./bbt.loan.sms.applicaion/components/:/components"
+    network_mode: "service:bbt.loan.sms.applicaion"
+    depends_on:
+      - dapr-app-redis
+  dapr-app-redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
